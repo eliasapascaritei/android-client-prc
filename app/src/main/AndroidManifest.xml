@@ -21,6 +21,12 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name="ro.prc.android.activities.SearchActivity"
+            android:label="@string/title_activity_cnp"
+            android:screenOrientation="portrait" >
+        </activity>
+
     </application>
 
 </manifest>

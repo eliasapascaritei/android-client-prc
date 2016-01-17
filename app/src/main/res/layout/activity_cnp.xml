@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="@color/grey"
     android:orientation="vertical"
-    tools:context="ro.prc.android.activities.ChannelsActivity">
+    tools:context="ro.prc.android.activities.CnpActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/app_bar"
@@ -40,8 +40,8 @@
 
         <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="?attr/actionBarSize"
+            android:layout_height="wrap_content"
+            android:id="@+id/addCnp"
             android:orientation="vertical"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
@@ -94,10 +94,19 @@
                 android:text="Verifica"
                 android:elevation="4dp"
                 android:background="@drawable/button_selector"
-                android:layout_marginTop="40dp"
+                android:layout_marginTop="30dp"
                 android:textColor="@android:color/white"/>
 
         </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerList"
+            android:transcriptMode="alwaysScroll"
+            android:layout_below="@+id/addCnp"
+            android:paddingLeft="0dp"
+            android:paddingRight="0dp"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
 
 
     </RelativeLayout>

@@ -1,9 +1,12 @@
 package ro.prc.android.activities;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -17,22 +20,32 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.melnykov.fab.FloatingActionButton;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import ro.prc.android.R;
+import ro.prc.android.adapters.CnpAdapter;
+import ro.prc.android.models.CNP;
 
 public class CnpActivity extends AppCompatActivity {
 
     private EditText inputName, inputSurName, inputCnp;
     private TextInputLayout inputLayoutName, inputLayoutSurName, inputLayoutCnp;
     private Button btnCheck;
+    private RecyclerView recyclerView;
+    private ArrayList<CNP> cnpList = new ArrayList<>();
+    private CnpAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +70,84 @@ public class CnpActivity extends AppCompatActivity {
                 submitForm();
             }
         });
+
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerList);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getApplication()));
+
+        CNP cnp = new CNP();
+        cnp.setCnp("CNP");
+        cnp.setName("firstName");
+        cnp.setSurname("lastName");
+        cnpList.add(cnp);
+        adapter = new CnpAdapter(getApplicationContext(), cnpList);
+
+        recyclerView.setAdapter(adapter);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.attachToRecyclerView(recyclerView);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                final Intent intent = new Intent(getApplicationContext(), SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        refreshCnpList(getApplicationContext());
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    private void refreshCnpList(Context context) {
+        final ArrayList<CNP> list = new ArrayList<>();
+
+        RequestQueue queue = Volley.newRequestQueue(context);
+        String url = "http://apollo.eed.usv.ro:8080/servletPrcCnp/UserController?action=listJson";
+
+        JsonArrayRequest getRequest = new JsonArrayRequest(Request.Method.GET, url,
+            new Response.Listener<JSONArray>()
+            {
+                @Override
+                public void onResponse(JSONArray response) {
+                    Log.d("Response", response.toString());
+                    for (int i = 0; i < response.length(); i++) {
+                        try {
+                            CNP cnp = new CNP();
+                            JSONObject jsonobject = response.getJSONObject(i);
+                            cnp.setCnp(jsonobject.getString("CNP"));
+                            cnp.setName(jsonobject.getString("firstName"));
+                            cnp.setSurname(jsonobject.getString("lastName"));
+                            list.add(cnp);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    /*for (CNP cnpdd: list) {
+                        Log.e("cnps", cnpdd.getCnp() + " | " + cnpdd.getName());
+                    }*/
+
+                    cnpList.clear();
+                    cnpList.addAll(list);
+                    adapter.notifyDataSetChanged();
+                    recyclerView.invalidate();
+
+                    Log.e("adapter", String.valueOf(adapter.getItemCount()));
+
+                }
+            },
+            new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.e("Error.Response", error.toString());
+                }
+            }
+        );
+        queue.add(getRequest);
     }
 
     private void submitForm() {
@@ -72,7 +163,7 @@ public class CnpActivity extends AppCompatActivity {
     }
 
     private void validateCnp(final Context context) {
-        String cnp = inputCnp.getText().toString().trim();
+        final String cnp = inputCnp.getText().toString().trim();
 
         if (cnp.isEmpty()) {
             inputLayoutCnp.setError(getString(R.string.err_msg_empty_cnp));
@@ -91,7 +182,7 @@ public class CnpActivity extends AppCompatActivity {
                             boolean valid = response.getBoolean("valid");
                             if (valid) {
                                 inputLayoutCnp.setErrorEnabled(false);
-                                saveCNP(context);
+                                saveCNP(context, cnp);
                             } else {
                                 inputLayoutCnp.setError(getString(R.string.err_msg_cnp));
                                 requestFocus(inputCnp);
@@ -114,7 +205,7 @@ public class CnpActivity extends AppCompatActivity {
         }
     }
 
-    private void saveCNP(Context context) {
+    private void saveCNP(Context context, String CNP) {
         RequestQueue queue = Volley.newRequestQueue(context);
         String url = "http://httpbin.org/post";
 
@@ -126,7 +217,7 @@ public class CnpActivity extends AppCompatActivity {
                         Log.d("Response", response.toString());
 
                         Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
-
+                        refreshCnpList(getApplicationContext());
                     }
                 },
                 new Response.ErrorListener()
