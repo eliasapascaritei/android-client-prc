@@ -45,7 +45,7 @@
             android:orientation="vertical"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
-            android:paddingTop="5dp"
+            android:paddingTop="20dp"
             android:paddingBottom="20dp">
 
             <android.support.design.widget.TextInputLayout
@@ -58,7 +58,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:singleLine="true"
-                    android:textSize="15sp"
                     android:hint="Nume" />
             </android.support.design.widget.TextInputLayout>
 
@@ -72,7 +71,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text"
-                    android:textSize="15sp"
                     android:hint="Prenume" />
             </android.support.design.widget.TextInputLayout>
 
@@ -87,13 +85,12 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:maxLength="13"
-                    android:textSize="15sp"
                     android:hint="CNP" />
             </android.support.design.widget.TextInputLayout>
 
             <Button android:id="@+id/btn_check"
                 android:layout_width="fill_parent"
-                android:layout_height="40dp"
+                android:layout_height="50dp"
                 android:text="Verifica"
                 android:elevation="4dp"
                 android:background="@drawable/button_selector"
