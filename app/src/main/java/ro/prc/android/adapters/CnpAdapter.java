@@ -2,24 +2,23 @@ package ro.prc.android.adapters;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import ro.prc.android.R;
 import ro.prc.android.models.CNP;
 
 public class CnpAdapter extends RecyclerView.Adapter<CnpAdapter.CnpHolder> {
     private LayoutInflater inflater;
-    private final ArrayList<CNP> cnpList;
+    private final List<CNP> cnpList;
 
-    public CnpAdapter(Context context, ArrayList<CNP> cnps) {
+    public CnpAdapter(Context context, List<CNP> cnps) {
         this.inflater = LayoutInflater.from(context);
-        this.cnpList = new ArrayList<>(cnps);
+        this.cnpList = cnps;
     }
 
     @Override

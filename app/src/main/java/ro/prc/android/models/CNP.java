@@ -1,7 +1,5 @@
 package ro.prc.android.models;
 
-import java.util.Date;
-
 public class CNP {
 
     private String name;

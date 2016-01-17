@@ -31,6 +31,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import ro.prc.android.R;
@@ -43,7 +44,7 @@ public class CnpActivity extends AppCompatActivity {
     private TextInputLayout inputLayoutName, inputLayoutSurName, inputLayoutCnp;
     private Button btnCheck;
     private RecyclerView recyclerView;
-    private ArrayList<CNP> cnpList = new ArrayList<>();
+    private List<CNP> cnpList;
     private CnpAdapter adapter;
 
 
@@ -74,11 +75,7 @@ public class CnpActivity extends AppCompatActivity {
         recyclerView = (RecyclerView) findViewById(R.id.recyclerList);
         recyclerView.setLayoutManager(new LinearLayoutManager(getApplication()));
 
-        CNP cnp = new CNP();
-        cnp.setCnp("CNP");
-        cnp.setName("firstName");
-        cnp.setSurname("lastName");
-        cnpList.add(cnp);
+        cnpList = new ArrayList<>();
         adapter = new CnpAdapter(getApplicationContext(), cnpList);
 
         recyclerView.setAdapter(adapter);
@@ -103,7 +100,7 @@ public class CnpActivity extends AppCompatActivity {
     }
 
     private void refreshCnpList(Context context) {
-        final ArrayList<CNP> list = new ArrayList<>();
+        final List<CNP> list = new ArrayList<>();
 
         RequestQueue queue = Volley.newRequestQueue(context);
         String url = "http://apollo.eed.usv.ro:8080/servletPrcCnp/UserController?action=listJson";
@@ -127,17 +124,10 @@ public class CnpActivity extends AppCompatActivity {
                         }
                     }
 
-                    /*for (CNP cnpdd: list) {
-                        Log.e("cnps", cnpdd.getCnp() + " | " + cnpdd.getName());
-                    }*/
-
                     cnpList.clear();
                     cnpList.addAll(list);
                     adapter.notifyDataSetChanged();
                     recyclerView.invalidate();
-
-                    Log.e("adapter", String.valueOf(adapter.getItemCount()));
-
                 }
             },
             new Response.ErrorListener() {
@@ -164,6 +154,8 @@ public class CnpActivity extends AppCompatActivity {
 
     private void validateCnp(final Context context) {
         final String cnp = inputCnp.getText().toString().trim();
+        final String name = inputName.getText().toString().trim();
+        final String surname = inputSurName.getText().toString().trim();
 
         if (cnp.isEmpty()) {
             inputLayoutCnp.setError(getString(R.string.err_msg_empty_cnp));
@@ -182,7 +174,11 @@ public class CnpActivity extends AppCompatActivity {
                             boolean valid = response.getBoolean("valid");
                             if (valid) {
                                 inputLayoutCnp.setErrorEnabled(false);
-                                saveCNP(context, cnp);
+                                CNP user = new CNP();
+                                user.setName(name);
+                                user.setSurname(surname);
+                                user.setCnp(cnp);
+                                saveCNP(context, user);
                             } else {
                                 inputLayoutCnp.setError(getString(R.string.err_msg_cnp));
                                 requestFocus(inputCnp);
@@ -205,18 +201,32 @@ public class CnpActivity extends AppCompatActivity {
         }
     }
 
-    private void saveCNP(Context context, String CNP) {
+    private void saveCNP(Context context, final CNP user) {
         RequestQueue queue = Volley.newRequestQueue(context);
-        String url = "http://httpbin.org/post";
+        //String url = "http://localhost:8080/SimpleJspServletDB/UserController?action=addJson&firstName=ana&lastName=ana&cnp=465456";
+        String url = "http://apollo.eed.usv.ro:8080/servletPrcCnp/UserController?action=addJson" +
+                "&firstName=" + user.getName() +
+                "&lastName=" + user.getSurname() +
+                "&cnp=" + user.getCnp();
 
         JsonObjectRequest postRequest = new JsonObjectRequest(Request.Method.POST, url,
                 new Response.Listener<JSONObject>()
                 {
                     @Override
                     public void onResponse(JSONObject response) {
-                        Log.d("Response", response.toString());
+                        try {
+                            Log.d("Response", response.toString());
+                            boolean saved = response.getBoolean("saved");
+                            if (saved) {
+                                Toast.makeText(getApplicationContext(), "Salvat!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Userul exista in sistem!", Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            Toast.makeText(getApplicationContext(), "Eroare!", Toast.LENGTH_SHORT).show();
+                        }
 
-                        Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
                         refreshCnpList(getApplicationContext());
                     }
                 },
@@ -228,15 +238,16 @@ public class CnpActivity extends AppCompatActivity {
                     }
                 }
         ) {
-            @Override
+            /*@Override
             protected Map<String, String> getParams()
             {
                 Map<String, String>  params = new HashMap<String, String>();
-                params.put("name", "Alif");
-                params.put("domain", "http://itsalif.info");
+                params.put("firstName", user.getName());
+                params.put("lastName", user.getSurname());
+                params.put("cnp", user.getCnp());
 
                 return params;
-            }
+            }*/
         };
         queue.add(postRequest);
     }
